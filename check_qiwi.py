@@ -4,7 +4,7 @@
 """
 import sqlite3
 import requests
-from random import choice
+from uuid import uuid4
 
 
 class Check():
@@ -15,20 +15,12 @@ class Check():
         self.secret_key = secret_key
 
     def __generate_billid(self, user):
-        library = list()
-        for i in range(0, 26):
-            character = ord('a')
-            library.append(chr(character + i))
-        result = ''
-        for i in range(0, 30):
-            result += choice(library)
+        result = str(uuid4())
         con = sqlite3.connect('bill_ids.sqlite3')
         cur = con.cursor()
         cur.execute('create table if not exists Users (user INTEGER UNIQUE, bill TEXT)')
         cur.execute('insert or ignore into Users values(?, ?)', (user, result))
         con.commit()
-        cur.close()
-        con.close()
         return result
 
     def create_paylink(self, amount, user, comment=' '):
@@ -51,10 +43,33 @@ class Check():
         if r.json()['status']['value'] == 'PAID':
             cur.execute(f'DELETE FROM Users WHERE user = {user}')
             con.commit()
-            cur.close()
-            con.close()
             return True
         else:
-            cur.close()
-            con.close()
             return False
+
+
+class Wallet():
+
+    def __init__(self, login, token):
+        self.login = login
+        self.token = token
+
+    def get_profile(self):
+        """Возвращает информацию о профиле Qiwi кошелька в формате json."""
+        return requests.get('https://edge.qiwi.com/person-profile/v1/profile/current',
+                            headers={'accept': 'application/json', 'Authorization': f'Bearer {self.token}'}
+                            ).json()
+
+    def history_payment(self, number=1, operation='ALL'):
+        """Возвращает историю платежей, опционально можно задать number(кол-во платежей) и
+        operation, которое может принимать значения в формате строки:
+        ALL - все операции,
+        IN - только пополнения,
+        OUT - только платежи,
+        QIWI_CARD - только платежи по картам QIWI (QVC, QVP).
+        """
+        return requests.get(f'https://edge.qiwi.com/payment-history/v2/persons/{self.login}/payments',
+                         headers={'accept': 'application/json', 'Authorization': f'Bearer {self.token}'},
+                         params={'rows': number,
+                                 'operation': operation,
+                                 }).json()['data']
