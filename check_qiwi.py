@@ -3,16 +3,19 @@
 Ключи доступа можно получить на p2p.qiwi.com
 """
 import sqlite3
-import requests
+#import requests
+import urllib.request 
 from uuid import uuid4
 
 
 class Check():
 
-    def __init__(self, publicKey, secret_key):
+    def __init__(self):
         """Для авторизации нужно указать publicKey и secretKey, созданные заранее на p2p.qiwi.com"""
-        self.publicKey = publicKey
-        self.secret_key = secret_key
+        f = open("config.txt")
+        f = f.read().split("\n")
+        self.publicKey = f[0]
+        self.secret_key = f[1]
 
     def __generate_billid(self, user):
         result = str(uuid4())
