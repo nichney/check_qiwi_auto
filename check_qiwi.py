@@ -3,8 +3,7 @@
 Ключи доступа можно получить на p2p.qiwi.com
 """
 import sqlite3
-#import requests
-import urllib.request 
+import requests
 from uuid import uuid4
 
 
@@ -21,8 +20,8 @@ class Check():
         result = str(uuid4())
         con = sqlite3.connect('bill_ids.sqlite3')
         cur = con.cursor()
-        cur.execute('create table if not exists Users (user INTEGER UNIQUE, bill TEXT)')
-        cur.execute('insert or ignore into Users values(?, ?)', (user, result))
+        cur.execute('CREATE TABLE IF NOT EXISTS Users (user INTEGER UNIQUE, bill TEXT)')
+        cur.execute('INSERT OR IGNORE INTO Users values(?, ?)', (user, result))
         con.commit()
         return result
 
@@ -40,7 +39,7 @@ class Check():
         """
         con = sqlite3.connect('bill_ids.sqlite3')
         cur = con.cursor()
-        bill = cur.execute('SELECT bill FROM Users WHERE user = (?)', (user,)).fetchall()[0][0]
+        bill = cur.execute('SELECT bill FROM Users WHERE user = (?)', (user,)).fetchone()[0]
         r = requests.get(f'https://api.qiwi.com/partner/bill/v1/bills/{bill}',
                          headers={'accept': 'application/json', 'Authorization': f'Bearer {self.secret_key}'})
         if r.json()['status']['value'] == 'PAID':
