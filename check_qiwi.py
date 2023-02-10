@@ -2,9 +2,8 @@
 Модуль для выставления счетов и их автоматической проверки через QiwiAPI.
 Ключи доступа можно получить на p2p.qiwi.com
 
-Автор: Кирилл "Nichney" Осмоловский
-Год создания: 2021
-Сайт автора: https://nichney.ru
+Author: Kirill Osmolovsky
+Year: 2021-2023
 """
 import sqlite3
 import requests
